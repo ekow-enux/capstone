@@ -1,11 +1,11 @@
 import express from 'express';
-import { 
-    register, 
-    login, 
-    logout,
-    sendRegistrationOTP, 
-    forgotPassword, 
-    resetPassword
+import {
+    register,
+    login,
+    logout
+    // sendRegistrationOTP, 
+    // forgotPassword,
+    // resetPassword,
     // verifyPhone - TEMPORARILY COMMENTED OUT
 } from '../controllers/authController.js';
 
@@ -219,219 +219,14 @@ router.post('/logout', logout);
 
 // OTP-based Authentication Routes
 
-/**
- * @swagger
- * /api/auth/send-registration-otp:
- *   post:
- *     summary: Send OTP for user registration
- *     tags: [Authentication]
- *     description: Send OTP to phone number for user registration verification
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - phone
- *             properties:
- *               phone:
- *                 type: string
- *                 example: "+233201234567"
- *           example:
- *             phone: "+233201234567"
- *     responses:
- *       200:
- *         description: OTP sent successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "OTP sent successfully"
- *                 phone_number:
- *                   type: string
- *                   example: "233201234567"
- *                 expires_at:
- *                   type: string
- *                   format: date-time
- *       400:
- *         description: Phone already registered or validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             examples:
- *               phoneRegistered:
- *                 value:
- *                   message: "Phone number already registered"
- *               phoneRequired:
- *                 value:
- *                   message: "Phone number is required"
- *       500:
- *         description: Failed to send OTP
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Failed to send OTP"
- */
-router.post('/send-registration-otp', sendRegistrationOTP);
+// Send OTP for registration - OTP functionality removed
+// router.post('/send-registration-otp', sendRegistrationOTP);
 
-/**
- * @swagger
- * /api/auth/forgot-password:
- *   post:
- *     summary: Send OTP for password reset
- *     tags: [Authentication]
- *     description: Send OTP to phone number for password reset verification
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - phone
- *             properties:
- *               phone:
- *                 type: string
- *                 example: "+233201234567"
- *           example:
- *             phone: "+233201234567"
- *     responses:
- *       200:
- *         description: Password reset OTP sent successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Password reset OTP sent successfully"
- *                 phone_number:
- *                   type: string
- *                   example: "233201234567"
- *                 expires_at:
- *                   type: string
- *                   format: date-time
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Phone number is required"
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "User not found"
- *       500:
- *         description: Failed to send OTP
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Failed to send OTP"
- */
-router.post('/forgot-password', forgotPassword);
+// Forgot password - OTP functionality removed
+// router.post('/forgot-password', forgotPassword);
 
-/**
- * @swagger
- * /api/auth/reset-password:
- *   post:
- *     summary: Reset password with OTP verification
- *     tags: [Authentication]
- *     description: Reset user password using OTP verification
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - phone
- *               - otp_code
- *               - new_password
- *             properties:
- *               phone:
- *                 type: string
- *                 example: "+233201234567"
- *               otp_code:
- *                 type: string
- *                 example: "123456"
- *               new_password:
- *                 type: string
- *                 minLength: 6
- *                 example: "newSecurePassword123"
- *           example:
- *             phone: "+233201234567"
- *             otp_code: "123456"
- *             new_password: "newSecurePassword123"
- *     responses:
- *       200:
- *         description: Password reset successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Password reset successfully"
- *                 phone_number:
- *                   type: string
- *                   example: "233201234567"
- *       400:
- *         description: Validation error or invalid OTP
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             examples:
- *               validationError:
- *                 value:
- *                   message: "Phone number, OTP code, and new password are required"
- *               passwordTooShort:
- *                 value:
- *                   message: "New password must be at least 6 characters long"
- *               invalidOTP:
- *                 value:
- *                   message: "Invalid OTP code"
- *               expiredOTP:
- *                 value:
- *                   message: "OTP has expired"
- *               tooManyAttempts:
- *                 value:
- *                   message: "Too many verification attempts. Please request a new OTP."
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "User not found"
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Internal server error"
- */
-router.post('/reset-password', resetPassword);
+// Reset password - OTP functionality removed
+// router.post('/reset-password', resetPassword);
 
 /**
  * @swagger
