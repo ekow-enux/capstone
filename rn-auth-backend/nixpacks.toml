@@ -1,0 +1,10 @@
+[phases.setup]
+# Use a newer nixpkgs channel that supports Node.js 22
+nixPkgsChannel = "nixpkgs-unstable"
+
+[phases.build]
+cmds = ["npm install"]
+
+# Define the Node.js version
+[variables]
+NODE_VERSION = "22"
