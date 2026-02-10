@@ -629,6 +629,7 @@ export const loginFirePersonnel = async (req, res) => {
             success: true,
             message: 'Login successful.',
             token,
+            id: personnel._id,
             data: responseData
         });
     } catch (error) {
