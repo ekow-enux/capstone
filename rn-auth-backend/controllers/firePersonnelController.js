@@ -18,6 +18,25 @@ const getUserIdFromToken = (req) => {
     }
 };
 
+// Helper function to simplify personnel data
+const simplifyPersonnelData = (personnel) => {
+    if (!personnel) return null;
+
+    return {
+        id: personnel._id,
+        serviceNumber: personnel.serviceNumber,
+        name: personnel.name,
+        gender: personnel.gender,
+        rank: personnel.rank ? {
+            name: personnel.rank.name,
+            initials: personnel.rank.initials
+        } : null,
+        station: personnel.station_id ? personnel.station_id.name : null,
+        unit: personnel.unit ? personnel.unit.name : null,
+        department: personnel.department ? personnel.department.name : null
+    };
+};
+
 // Create FirePersonnel
 export const createFirePersonnel = async (req, res) => {
     try {
@@ -127,7 +146,7 @@ export const createFirePersonnel = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Fire personnel created successfully.',
-            data: populatedPersonnel
+            data: simplifyPersonnelData(populatedPersonnel)
         });
     } catch (error) {
         res.status(500).json({
@@ -174,10 +193,12 @@ export const getAllFirePersonnel = async (req, res) => {
             .populate('station_id')
             .sort({ name: 1 });
 
+        const simplifiedPersonnel = personnel.map(p => simplifyPersonnelData(p));
+
         res.status(200).json({
             success: true,
-            count: personnel.length,
-            data: personnel
+            count: simplifiedPersonnel.length,
+            data: simplifiedPersonnel
         });
     } catch (error) {
         res.status(500).json({
@@ -218,7 +239,7 @@ export const getCurrentFirePersonnel = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: personnel
+            data: simplifyPersonnelData(personnel)
         });
     } catch (error) {
         res.status(500).json({
@@ -257,7 +278,7 @@ export const getFirePersonnelById = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: personnel
+            data: simplifyPersonnelData(personnel)
         });
     } catch (error) {
         res.status(500).json({
@@ -414,7 +435,7 @@ export const updateFirePersonnel = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Fire personnel updated successfully',
-            data: personnel
+            data: simplifyPersonnelData(personnel)
         });
     } catch (error) {
         res.status(500).json({
@@ -477,10 +498,12 @@ export const getPersonnelByUnit = async (req, res) => {
             .populate('station_id')
             .sort({ name: 1 });
 
+        const simplifiedPersonnel = personnel.map(p => simplifyPersonnelData(p));
+
         res.status(200).json({
             success: true,
-            count: personnel.length,
-            data: personnel
+            count: simplifiedPersonnel.length,
+            data: simplifiedPersonnel
         });
     } catch (error) {
         res.status(500).json({
@@ -512,10 +535,12 @@ export const getPersonnelByDepartment = async (req, res) => {
             .populate('station_id')
             .sort({ name: 1 });
 
+        const simplifiedPersonnel = personnel.map(p => simplifyPersonnelData(p));
+
         res.status(200).json({
             success: true,
-            count: personnel.length,
-            data: personnel
+            count: simplifiedPersonnel.length,
+            data: simplifiedPersonnel
         });
     } catch (error) {
         res.status(500).json({
@@ -546,10 +571,12 @@ export const getPersonnelByStation = async (req, res) => {
             .populate('station_id')
             .sort({ name: 1 });
 
+        const simplifiedPersonnel = personnel.map(p => simplifyPersonnelData(p));
+
         res.status(200).json({
             success: true,
-            count: personnel.length,
-            data: personnel
+            count: simplifiedPersonnel.length,
+            data: simplifiedPersonnel
         });
     } catch (error) {
         res.status(500).json({
@@ -622,15 +649,12 @@ export const loginFirePersonnel = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        const responseData = personnel.toObject();
-        delete responseData.password;
-
         res.status(200).json({
             success: true,
             message: 'Login successful.',
             token,
             id: personnel._id,
-            data: responseData
+            data: simplifyPersonnelData(personnel)
         });
     } catch (error) {
         res.status(500).json({
