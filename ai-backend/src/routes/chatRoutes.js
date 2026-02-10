@@ -17,11 +17,16 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - text
+ *               - userId
  *             properties:
  *               text:
  *                 type: string
  *                 description: The user's fire safety question or message
  *                 example: "How can I prevent kitchen fires?"
+ *               userId:
+ *                 type: string
+ *                 description: User or Officer ID to associate with the session
+ *                 example: "68fe08c1ae5b0066605af7ce"
  *     responses:
  *       201:
  *         description: Session created successfully
@@ -30,9 +35,12 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 sessionId:
+ *                 _id:
  *                   type: string
  *                   description: Unique identifier for the chat session
+ *                 userId:
+ *                   type: string
+ *                   description: User or Officer ID associated with the session
  *                 title:
  *                   type: string
  *                   description: AI-generated contextual title for the session
@@ -65,7 +73,7 @@ const router = express.Router();
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request - text is required
+ *         description: Bad request - text or userId is required
  *         content:
  *           application/json:
  *             schema:
@@ -141,6 +149,8 @@ router.post('/chat', createSession);
  *                   properties:
  *                     _id:
  *                       type: string
+ *                     userId:
+ *                       type: string
  *                     title:
  *                       type: string
  *                     lastMessage:
@@ -182,7 +192,13 @@ router.post('/chat/:sessionId/message', addMessage);
  * /chat:
  *   get:
  *     summary: Get all recent chat sessions
- *     description: Retrieves all chat sessions with their contextual titles and last messages
+ *     description: Retrieves all chat sessions with their contextual titles and last messages. Optionally filter by userId.
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Filter sessions by user ID
  *     responses:
  *       200:
  *         description: List of sessions retrieved successfully
@@ -196,6 +212,9 @@ router.post('/chat/:sessionId/message', addMessage);
  *                   _id:
  *                     type: string
  *                     description: Unique session identifier
+ *                   userId:
+ *                     type: string
+ *                     description: User or Officer ID associated with the session
  *                   title:
  *                     type: string
  *                     description: AI-generated contextual title
@@ -239,9 +258,12 @@ router.get('/chat', getSessions);
  *             schema:
  *               type: object
  *               properties:
- *                 id:
+ *                 _id:
  *                   type: string
  *                   description: Session identifier
+ *                 userId:
+ *                   type: string
+ *                   description: User or Officer ID associated with the session
  *                 title:
  *                   type: string
  *                   description: AI-generated contextual title
@@ -396,6 +418,8 @@ router.put('/chat/:sessionId/title', updateSessionTitle);
  *                   properties:
  *                     _id:
  *                       type: string
+ *                     userId:
+ *                       type: string
  *                     title:
  *                       type: string
  *                     lastMessage:
@@ -508,7 +532,7 @@ router.post('/chat/:sessionId/regenerate/:messageId', regenerateMessageResponse)
  *               action:
  *                 type: string
  *                 enum: [like, dislike]
- *                 description: The feedback action to perform
+ *                 description: The action to perform
  *                 example: "like"
  *     responses:
  *       200:
@@ -520,21 +544,60 @@ router.post('/chat/:sessionId/regenerate/:messageId', regenerateMessageResponse)
  *               properties:
  *                 message:
  *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     prompt:
+ *                       type: string
+ *                     response:
+ *                       type: string
+ *                     timestamp:
+ *                       type: string
+ *                       format: date-time
+ *                     likes:
+ *                       type: number
+ *                     dislikes:
+ *                       type: number
+ *                     userFeedback:
+ *                       type: string
+ *                       enum: [like, dislike, null]
  *                 action:
  *                   type: string
+ *                   description: The action performed
+ *                   example: "like"
  *                 likes:
  *                   type: number
+ *                   description: Total likes for the message
  *                 dislikes:
  *                   type: number
+ *                   description: Total dislikes for the message
  *                 userFeedback:
  *                   type: string
+ *                   description: Current user's feedback state
  *                   enum: [like, dislike, null]
  *                 messageId:
  *                   type: string
+ *                   description: The ID of the message
  *       400:
  *         description: Bad request - invalid action
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Action must be \"like\" or \"dislike\""
  *       404:
  *         description: Session or message not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Session not found"
  *       500:
  *         description: Internal server error
  */
@@ -542,61 +605,10 @@ router.post('/chat/:sessionId/message/:messageId/like', likeMessage);
 
 /**
  * @swagger
- * /chat/{sessionId}/message/{messageId}/prompt:
- *   patch:
- *     summary: Update prompt and regenerate AI response (PATCH - Semantically Correct)
- *     description: Updates the user's prompt for a specific message and generates a new AI response based on the updated question. PATCH is the semantically correct method for partial resource updates.
- *     parameters:
- *       - in: path
- *         name: sessionId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the chat session
- *         example: "68fdec6c8926e0f530e312b5"
- *       - in: path
- *         name: messageId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the message to update
- *         example: "8f14375a-1601-48d9-b950-e2ac1da2d80a"
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - newPrompt
- *             properties:
- *               newPrompt:
- *                 type: string
- *                 description: The updated question or prompt
- *                 example: "What are the most effective ways to prevent electrical fires in homes?"
- *     responses:
- *       200:
- *         description: Prompt updated and AI response regenerated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Prompt updated and AI response regenerated successfully"
- *       400:
- *         description: Bad request - newPrompt is required
- *       404:
- *         description: Session or message not found
- *       500:
- *         description: Internal server error
+ * /chat/{sessionId}/message/{messageId}:
  *   put:
- *     summary: Update prompt and regenerate AI response
- *     description: Updates the user's prompt for a specific message and generates a new AI response based on the updated question
+ *     summary: Update prompt and regenerate response for a specific message
+ *     description: Updates the prompt for a specific message and regenerates the AI response with conversation context awareness
  *     parameters:
  *       - in: path
  *         name: sessionId
@@ -623,11 +635,11 @@ router.post('/chat/:sessionId/message/:messageId/like', likeMessage);
  *             properties:
  *               newPrompt:
  *                 type: string
- *                 description: The updated question or prompt
- *                 example: "What are the most effective ways to prevent electrical fires in homes?"
+ *                 description: The updated prompt for the message
+ *                 example: "What are the key fire safety tips for a commercial kitchen?"
  *     responses:
  *       200:
- *         description: Prompt updated and AI response regenerated successfully
+ *         description: Prompt updated and response regenerated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -635,57 +647,34 @@ router.post('/chat/:sessionId/message/:messageId/like', likeMessage);
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
+ *                   description: Indicates if the operation was successful
  *                 message:
  *                   type: string
+ *                   description: Confirmation message
  *                   example: "Prompt updated and AI response regenerated successfully"
  *       400:
- *         description: Bad request - newPrompt is required
+ *         description: Bad request - new prompt is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "New prompt is required"
  *       404:
  *         description: Session or message not found
- *       500:
- *         description: Internal server error
- *   post:
- *     summary: Update prompt and regenerate AI response (POST alternative)
- *     description: Alternative POST method for updating prompts
- *     parameters:
- *       - in: path
- *         name: sessionId
- *         required: true
- *         schema:
- *           type: string
- *       - in: path
- *         name: messageId
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - newPrompt
- *             properties:
- *               newPrompt:
- *                 type: string
- *     responses:
- *       200:
- *         description: Prompt updated and new response generated successfully
- *       400:
- *         description: Bad request
- *       404:
- *         description: Session or message not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Session not found"
  *       500:
  *         description: Internal server error
  */
-router.put('/chat/:sessionId/message/:messageId/prompt', updatePrompt);
-
-// PATCH route for prompt update (semantically correct for partial updates)
-router.patch('/chat/:sessionId/message/:messageId/prompt', updatePrompt);
-
-// Alternative POST route for prompt update
-router.post('/chat/:sessionId/message/:messageId/prompt', updatePrompt);
+router.put('/chat/:sessionId/message/:messageId', updatePrompt);
 
 export default router;
