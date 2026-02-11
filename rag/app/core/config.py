@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     
     # CORS Configuration
     cors_origins: list[str] = Field(
-        default=["https://heritage.ekowlabs.space", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080"],
+        default=["https://heritage.ekowlabs.space", "https://gnfs.ekowlabs.space", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080"],
         description="List of allowed CORS origins"
     )
 
