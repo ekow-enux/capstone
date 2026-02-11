@@ -19,6 +19,7 @@ import emergencyAlertRoutes from './routes/emergencyAlertRoutes.js';
 import incidentRoutes from './routes/incidentRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import turnoutSlipRoutes from './routes/turnoutSlipRoutes.js';
+import fireSafetyTipRoutes from './routes/fireSafetyTipRoutes.js';
 import verifyToken from './middleware/verifyToken.js';
 import { swaggerUi, specs } from './swagger.js';
 import cron from 'node-cron';
@@ -35,7 +36,7 @@ const httpServer = createServer(app);
 
 app.use(cors({
     origin: [
-        'http://localhost:3000', 
+        'http://localhost:3000',
         'http://localhost:3001',
         'https://gnfs.ekowlabs.space',
         'https://auth.ekowlabs.space'
@@ -69,6 +70,7 @@ app.use('/api/emergency/alerts', emergencyAlertRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/turnout-slips', turnoutSlipRoutes);
+app.use('/api/fire-safety-tips', fireSafetyTipRoutes);
 
 // Super Admin routes (mixed - some public, some protected)
 // The routes file handles which ones need auth
@@ -87,8 +89,8 @@ app.use('/api/department-admin', departmentAdminRoutes);
 app.use('/api/unit-admin', unitAdminRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'ok', 
+    res.status(200).json({
+        status: 'ok',
         message: 'Auth backend is running',
         timestamp: new Date().toISOString()
     });
@@ -102,10 +104,10 @@ app.get('/', (req, res) => {
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI).then(() => {
     console.log('✅ MongoDB connected successfully');
-    
+
     // Initialize Socket.IO
     initializeSocket(httpServer);
-    
+
     // Schedule automatic unit deactivation at 8 AM daily
     // Cron format: minute hour day month weekday
     // "0 8 * * *" = 8:00 AM every day
@@ -119,9 +121,9 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
     }, {
         timezone: "Africa/Accra" // Ghana timezone (GMT+0)
     });
-    
+
     console.log('✅ Scheduled task configured: Auto-deactivate units daily at 8:00 AM (GMT+0)');
-    
+
     httpServer.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server running on port ${PORT}`);
         console.log(`📍 Local: http://localhost:${PORT}`);
