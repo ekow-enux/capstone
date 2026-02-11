@@ -39,7 +39,8 @@ app.use(cors({
         'http://localhost:3000',
         'http://localhost:3001',
         'https://gnfs.ekowlabs.space',
-        'https://auth.ekowlabs.space'
+        'https://auth.ekowlabs.space',
+        'https://rag.ekowlabs.space'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
